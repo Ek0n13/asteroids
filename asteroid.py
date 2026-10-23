@@ -10,6 +10,10 @@ class Asteroid(CircleShape):
     def __init__(self, x, y, radius):
         super().__init__(x, y, radius)
 
+    def is_killed(self) -> bool:
+        """Return whether a hit destroys this asteroid without splitting it."""
+        return self.radius <= ASTEROID_MIN_RADIUS
+
     def draw(self, screen):
         pygame.draw.circle(
             surface=screen,
@@ -24,7 +28,7 @@ class Asteroid(CircleShape):
 
     def split(self):
         self.kill()
-        if self.radius <= ASTEROID_MIN_RADIUS:
+        if self.is_killed():
             return
 
         log_event("asteroid_split")
