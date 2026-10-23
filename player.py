@@ -1,6 +1,7 @@
 from circleshape import CircleShape
 from constants import (
     PLAYER_RADIUS,
+    PLAYER_STARTING_LIVES,
     LINE_WIDTH,
     PLAYER_SHOOT_COOLDOWN_SECONDS,
     PLAYER_SHOOT_SPEED,
@@ -15,6 +16,20 @@ from shot import Shot
 class Player(CircleShape):
     def __init__(self, x: float, y: float):
         super().__init__(x=x, y=y, radius=PLAYER_RADIUS)
+        self._spawn_position = pygame.Vector2(x, y)
+        self.lives = PLAYER_STARTING_LIVES
+        self.respawn()
+
+    def lose_life(self) -> None:
+        if self.is_alive():
+            self.lives -= 1
+
+    def is_alive(self) -> bool:
+        return self.lives > 0
+
+    def respawn(self) -> None:
+        self.position.update(self._spawn_position)
+        self.velocity.update(0, 0)
         self.rotation = 0
         self.shoot_cd_timer = 0
 

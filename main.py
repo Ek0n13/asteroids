@@ -1,5 +1,3 @@
-import sys
-
 import pygame
 from asteroid import Asteroid
 from asteroidfield import AsteroidField
@@ -7,6 +5,15 @@ from constants import SCREEN_WIDTH, SCREEN_HEIGHT
 from logger import log_state, log_event
 from player import Player
 from shot import Shot
+
+
+def reset_round(updatable: pygame.sprite.Group, player: Player) -> None:
+    for sprite in updatable:
+        if sprite is not player:
+            sprite.kill()
+
+    player.respawn()
+    AsteroidField()
 
 
 def main():
@@ -19,7 +26,7 @@ def main():
     clock = pygame.time.Clock()
     dt = 0.0
     score = 0
-    score_font = pygame.font.Font(None, 32)
+    hud_font = pygame.font.Font(None, 32)
 
     updatable = pygame.sprite.Group()
     drawable = pygame.sprite.Group()
@@ -34,8 +41,7 @@ def main():
     Shot.containers = (shots, updatable, drawable)
 
     player = Player(x=SCREEN_WIDTH / 2, y=SCREEN_HEIGHT / 2)
-
-    AsteroidField()
+    reset_round(updatable, player)
 
     # game loop
     while True:
@@ -51,8 +57,14 @@ def main():
         for asteroid in asteroids:
             if asteroid.collides_with(player):
                 log_event("player_hit")
-                print("Game Over!")
-                sys.exit()
+                player.lose_life()
+                if not player.is_alive():
+                    print("Game Over!")
+                    return
+
+                reset_round(updatable, player)
+                score = 0
+                break
 
             for shot in shots:
                 if asteroid.collides_with(shot):
@@ -68,8 +80,10 @@ def main():
         for sprite in drawable:
             sprite.draw(screen=screen)
 
-        score_text = score_font.render(f"Asteroids destroyed: {score}", True, "white")
+        score_text = hud_font.render(f"Asteroids destroyed: {score}", True, "white")
         screen.blit(score_text, (20, 20))
+        lives_text = hud_font.render(f"Lives: {player.lives}", True, "white")
+        screen.blit(lives_text, (20, 60))
 
         pygame.display.flip()
         dt = clock.tick(60) / 1000
